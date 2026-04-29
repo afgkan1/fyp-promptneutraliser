@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Prompt Neutralizer</title>
+  <style>
+    :root{
+      --bg:#0b1020;
+      --panel:#121933;
+      --panel2:#0f1730;
+      --text:#e8ecff;
+      --muted:#9aa6d1;
+      --line:#23305f;
+      --accent:#6ea8fe;
+      --good:#26c281;
+      --warn:#ffb020;
+      --bad:#ff5d73;
+      --chip:#1a2448;
+      --shadow:0 12px 28px rgba(0,0,0,.35);
+      --radius:18px;
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:
+        radial-gradient(1200px 700px at 10% -10%, rgba(110,168,254,.18), transparent 45%),
+        radial-gradient(1000px 700px at 110% 10%, rgba(38,194,129,.12), transparent 40%),
+        var(--bg);
+      color:var(--text);
+    }
+
+    .wrap{
+      max-width:1200px;
+      margin:0 auto;
+      padding:28px;
+    }
+
+    .hero{
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap:20px;
+      margin-bottom:22px;
+    }
+
+    .title{
+      font-size:clamp(28px,4vw,44px);
+      font-weight:800;
+      letter-spacing:-.02em;
+      margin:0 0 8px;
+    }
+
+    .sub{
+      margin:0;
+      color:var(--muted);
+      font-size:15px;
+      line-height:1.55;
+      max-width:760px;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:1.15fr .85fr;
+      gap:22px;
+    }
+
+    .card{
+      background:linear-gradient(180deg,var(--panel),var(--panel2));
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+
+    .cardHead{
+      padding:18px 18px 0;
+    }
+
+    .cardTitle{
+      margin:0;
+      font-size:18px;
+      font-weight:700;
+    }
+
+    .cardSub{
+      margin:6px 0 0;
+      color:var(--muted);
+      font-size:13px;
+    }
+
+    .cardBody{
+      padding:18px;
+    }
+
+    label{
+      display:block;
+      font-size:13px;
+      color:var(--muted);
+      margin-bottom:8px;
+    }
+
+    .controls{
+      display:grid;
+      gap:14px;
+    }
+
+    textarea, button{
+      width:100%;
+      border:none;
+      outline:none;
+      border-radius:14px;
+      font:inherit;
+    }
+
+    textarea{
+      background:#0d1430;
+      color:var(--text);
+      border:1px solid var(--line);
+      padding:14px 15px;
+      min-height:190px;
+      resize:vertical;
+      line-height:1.55;
+    }
+
+    .row{
+      display:grid;
+      grid-template-columns:1fr auto;
+      gap:12px;
+      align-items:end;
+    }
+
+    .btn{
+      cursor:pointer;
+      padding:14px 18px;
+      background:linear-gradient(180deg,#7bb3ff,#5d95ff);
+      color:white;
+      font-weight:700;
+      letter-spacing:.01em;
+      border:1px solid rgba(255,255,255,.12);
+      transition:.18s transform ease,.18s opacity ease,.18s filter ease;
+      min-width:150px;
+    }
+
+    .btn:hover{transform:translateY(-1px); filter:brightness(1.04)}
+    .btn:disabled{opacity:.6; cursor:not-allowed; transform:none}
+
+    .scoreCard{
+      display:grid;
+      gap:14px;
+    }
+
+    .pillRow{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+    }
+
+    .pill{
+      background:var(--chip);
+      color:#d7e4ff;
+      border:1px solid var(--line);
+      padding:8px 12px;
+      border-radius:999px;
+      font-size:12px;
+      white-space:nowrap;
+    }
+
+    .status{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:14px 16px;
+      background:#0d1430;
+      border:1px solid var(--line);
+      border-radius:16px;
+    }
+
+    .dot{
+      width:10px;
+      height:10px;
+      border-radius:50%;
+      background:var(--muted);
+      box-shadow:0 0 0 6px rgba(255,255,255,.03);
+    }
+
+    .rows{
+      display:grid;
+      gap:14px;
+    }
+
+    .scoreRow{
+      display:grid;
+      grid-template-columns:140px 1fr 80px;
+      gap:12px;
+      align-items:center;
+    }
+
+    .scoreRow label{
+      margin:0;
+      color:var(--text);
+      font-size:14px;
+    }
+
+    .meter{
+      height:12px;
+      background:#0b1128;
+      border:1px solid var(--line);
+      border-radius:999px;
+      overflow:hidden;
+      position:relative;
+    }
+
+    .meter > div{
+      height:100%;
+      width:0%;
+      background:linear-gradient(90deg,var(--good),var(--warn),var(--bad));
+      transition:width .35s ease;
+    }
+
+    .scoreNum{
+      text-align:right;
+      color:#dce6ff;
+      font-weight:700;
+      font-variant-numeric:tabular-nums;
+      font-size:14px;
+    }
+
+    .improveLine{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding:12px 14px;
+      background:#0d1430;
+      border:1px solid var(--line);
+      border-radius:14px;
+    }
+
+    .small{
+      font-size:12px;
+      color:var(--muted);
+    }
+
+    .big{
+      font-size:22px;
+      font-weight:800;
+      letter-spacing:-.02em;
+    }
+
+    .box{
+      background:#0d1430;
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:14px;
+      min-height:78px;
+      white-space:pre-wrap;
+      line-height:1.55;
+    }
+
+    .muted{color:var(--muted)}
+
+    .flagList{
+      display:grid;
+      gap:10px;
+    }
+
+    .flag{
+      border:1px solid var(--line);
+      background:#0d1430;
+      border-radius:14px;
+      padding:12px;
+    }
+
+    .flagTop{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:8px;
+    }
+
+    .flagTerm{
+      font-weight:700;
+    }
+
+    .badge{
+      font-size:12px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:var(--chip);
+      color:#d7e4ff;
+    }
+
+    .sev1{color:var(--good)}
+    .sev2{color:var(--warn)}
+    .sev3{color:var(--bad)}
+
+    .footerNote{
+      margin-top:18px;
+      color:var(--muted);
+      font-size:12px;
+    }
+
+    @media (max-width: 980px){
+      .grid{grid-template-columns:1fr}
+      .row{grid-template-columns:1fr}
+      .scoreRow{grid-template-columns:1fr}
+      .scoreNum{text-align:left}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="hero">
+      <div>
+        <h1 class="title">Prompt Neutralizer</h1>
+        <p class="sub">
+          Analyze prompts for profanity, toxicity, stereotyping, and leading-question framing, then generate a more neutral rewrite while preserving the original intent.
+        </p>
+      </div>
+      <div class="pillRow">
+        <div class="pill">Bias-aware rewrite</div>
+        <div class="pill">Live score comparison</div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <div class="cardHead">
+          <h2 class="cardTitle">Prompt Input</h2>
+          <p class="cardSub">Enter your prompt and run the analysis.</p>
+        </div>
+        <div class="cardBody">
+          <div class="controls">
+            <div class="row">
+              <div></div>
+              <button class="btn" id="runBtn">Run Test</button>
+            </div>
+
+            <div>
+              <label for="promptInput">Prompt</label>
+              <textarea id="promptInput" placeholder="Type your prompt here..."></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="cardHead">
+          <h2 class="cardTitle">Score Overview</h2>
+          <p class="cardSub">Discrete 0–2 scoring for profanity, toxicity, stereotyping, and leading-question framing.</p>
+        </div>
+        <div class="cardBody scoreCard">
+          <div class="status">
+            <div class="dot" id="statusDot"></div>
+            <div>
+              <div style="font-weight:700" id="statusText">No test yet</div>
+              <div class="small">Current rewrite status</div>
+            </div>
+          </div>
+
+          <div class="rows">
+            <div class="scoreRow">
+              <label>Profanity</label>
+              <div class="meter"><div id="profBar"></div></div>
+              <div class="scoreNum" id="profNum">—</div>
+            </div>
+
+            <div class="scoreRow">
+              <label>Toxicity</label>
+              <div class="meter"><div id="toxBar"></div></div>
+              <div class="scoreNum" id="toxNum">—</div>
+            </div>
+
+            <div class="scoreRow">
+              <label>Stereotyping</label>
+              <div class="meter"><div id="stereoBar"></div></div>
+              <div class="scoreNum" id="stereoNum">—</div>
+            </div>
+
+            <div class="scoreRow">
+              <label>Leading Question</label>
+              <div class="meter"><div id="leadingBar"></div></div>
+              <div class="scoreNum" id="leadingNum">—</div>
+            </div>
+
+            <div class="improveLine">
+              <div>
+                <div class="small">Overall</div>
+                <div class="big" id="improvePct">—</div>
+              </div>
+              <div class="small muted" id="improveHint">Run a test to see results</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="cardHead">
+          <h2 class="cardTitle">Flagged Language</h2>
+          <p class="cardSub">Detected terms and patterns that contributed to the score.</p>
+        </div>
+        <div class="cardBody">
+          <div id="flaggedArea" class="flagList">
+            <div class="box muted">No scan yet.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="cardHead">
+          <h2 class="cardTitle">Neutral Rewrite</h2>
+          <p class="cardSub">The rewritten version keeps intent while reducing problematic framing.</p>
+        </div>
+        <div class="cardBody">
+          <div id="rewriteArea" class="box muted">No rewrite yet.</div>
+        </div>
+      </div>
+
+      <div class="card" style="grid-column:1 / -1;">
+        <div class="cardHead">
+          <h2 class="cardTitle">Comparison</h2>
+          <p class="cardSub">What changed between the original prompt and the neutral rewrite.</p>
+        </div>
+        <div class="cardBody">
+          <div id="compareArea" class="box muted">No comparison yet.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footerNote">
+      Scores use a simple 0–2 heuristic scale to support prompt refinement rather than make final judgements.
+    </div>
+  </div>
+
+  <script>
+    const el = (id) => document.getElementById(id);
+
+    function clamp(v, min, max){
+      return Math.max(min, Math.min(max, v));
+    }
+
+    function escapeHtml(str){
+      return String(str ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function statusFromScore(score){
+      const s = Number(score || 0);
+      if (s === 0) return { text: "Low risk", color: "var(--good)" };
+      if (s === 1) return { text: "Moderate risk", color: "var(--warn)" };
+      return { text: "High risk", color: "var(--bad)" };
+    }
+
+    function formatScorePair(originalValue, rewrittenValue){
+      const hasOriginal = (originalValue !== null && originalValue !== undefined && !Number.isNaN(originalValue));
+      const hasRewrite = (rewrittenValue !== null && rewrittenValue !== undefined && !Number.isNaN(rewrittenValue));
+
+      if (!hasOriginal) return "—";
+      if (!hasRewrite) return String(Number(originalValue));
+      return `${Number(originalValue)} → ${Number(rewrittenValue)}`;
+    }
+
+    function getImprovementLabel(originalTotal, rewrittenTotal){
+      const orig = Number(originalTotal);
+      const rew = Number(rewrittenTotal);
+
+      if (!Number.isFinite(orig) || !Number.isFinite(rew)) return "—";
+      if (rew < orig) return "Improved";
+      if (rew === orig) return "No change";
+      return "Worse";
+    }
+
+    function setMeter(barId, value){
+      const pct = (value !== null && value !== undefined)
+        ? clamp((Number(value) / 2) * 100, 0, 100)
+        : 0;
+      el(barId).style.width = pct + "%";
+    }
+
+    function setScoreUI(scores){
+      if (!scores) {
+        el("profNum").textContent = "—";
+        el("toxNum").textContent = "—";
+        el("stereoNum").textContent = "—";
+        el("leadingNum").textContent = "—";
+
+        el("profBar").style.width = "0%";
+        el("toxBar").style.width = "0%";
+        el("stereoBar").style.width = "0%";
+        el("leadingBar").style.width = "0%";
+
+        el("improvePct").textContent = "—";
+        el("improveHint").textContent = "Run a test to see results";
+        el("statusText").textContent = "No test yet";
+        el("statusDot").style.background = "var(--muted)";
+        return;
+      }
+
+      const original = scores.original || {};
+      const rewritten = scores.rewritten || {};
+
+      const hasRewrite = (
+        rewritten.total !== null &&
+        rewritten.total !== undefined &&
+        !Number.isNaN(rewritten.total)
+      );
+
+      el("profNum").textContent = formatScorePair(original.profanity, rewritten.profanity);
+      el("toxNum").textContent = formatScorePair(original.toxicity, rewritten.toxicity);
+      el("stereoNum").textContent = formatScorePair(original.stereotype, rewritten.stereotype);
+      el("leadingNum").textContent = formatScorePair(original.leading, rewritten.leading);
+
+      setMeter("profBar", hasRewrite ? rewritten.profanity : original.profanity);
+      setMeter("toxBar", hasRewrite ? rewritten.toxicity : original.toxicity);
+      setMeter("stereoBar", hasRewrite ? rewritten.stereotype : original.stereotype);
+      setMeter("leadingBar", hasRewrite ? rewritten.leading : original.leading);
+
+      if (hasRewrite && original.total !== null && original.total !== undefined) {
+        const label = getImprovementLabel(original.total, rewritten.total);
+        el("improvePct").textContent = `${Number(original.total)} → ${Number(rewritten.total)}`;
+        el("improveHint").textContent = label;
+      } else {
+        el("improvePct").textContent = "—";
+        el("improveHint").textContent = "Run a test to see results";
+      }
+
+      const statusScore = hasRewrite ? Number(rewritten.total) : Number(original.total);
+      const s = statusFromScore(statusScore);
+      el("statusText").textContent = s.text;
+      el("statusDot").style.background = s.color;
+    }
+
+    function renderFlagged(flagged){
+      if (!Array.isArray(flagged) || flagged.length === 0) {
+        el("flaggedArea").innerHTML = `<div class="box muted">No flagged wording detected.</div>`;
+        return;
+      }
+
+      el("flaggedArea").innerHTML = flagged.map(item => {
+        const sev = Number(item.severity || 2);
+        const sevClass = sev >= 3 ? "sev3" : (sev === 2 ? "sev2" : "sev1");
+        const suggestions = Array.isArray(item.suggested) && item.suggested.length
+          ? item.suggested.map(s => `<span class="pill">${escapeHtml(s)}</span>`).join(" ")
+          : `<span class="pill">No suggestion</span>`;
+
+        return `
+          <div class="flag">
+            <div class="flagTop">
+              <div class="flagTerm">${escapeHtml(item.matched_text || item.term || "Unknown term")}</div>
+              <div class="badge ${sevClass}">Severity ${escapeHtml(String(sev))}</div>
+            </div>
+            <div class="small" style="margin-bottom:8px;">
+              ${escapeHtml(item.reason || "No reason provided")}
+            </div>
+            <div class="pillRow">${suggestions}</div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      setScoreUI(null);
+    });
+
+    el("runBtn").addEventListener("click", async () => {
+      const prompt = el("promptInput").value.trim();
+      if (!prompt) return alert("Enter a prompt");
+
+      el("runBtn").disabled = true;
+      el("runBtn").textContent = "Running...";
+
+      el("flaggedArea").innerHTML = `<div class="box muted">Analyzing...</div>`;
+      el("rewriteArea").innerHTML = `Generating rewrite...`;
+      el("compareArea").innerHTML = `Preparing comparison...`;
+
+      setScoreUI({
+        original: { profanity: 0, toxicity: 0, stereotype: 0, leading: 0, total: 0 }
+      });
+
+      try {
+        const scanRes = await fetch("http://127.0.0.1:8000/scan", {
+          method: "POST",
+          headers: {"Content-Type":"application/json"},
+          body: JSON.stringify({ prompt })
+        });
+        if (!scanRes.ok) throw new Error(await scanRes.text());
+        const scanData = await scanRes.json();
+
+        renderFlagged(scanData.flagged);
+        setScoreUI({
+          original: {
+            profanity: scanData.profanity_score,
+            toxicity: scanData.toxicity_score,
+            stereotype: scanData.stereotype_score,
+            leading: scanData.leading_score,
+            total: scanData.original_score
+          }
+        });
+
+        const isNeutral =
+          (!scanData.flagged || scanData.flagged.length === 0) &&
+          Number(scanData.original_score) === 0;
+
+        if (isNeutral) {
+          const proceed = confirm("This prompt looks neutral already. Would you like to still improve it structurally and make it more neutral?");
+          if (!proceed) {
+            el("rewriteArea").innerHTML = `<div class="box muted">No rewrite applied (prompt already neutral).</div>`;
+            el("compareArea").innerHTML = `<div class="box muted">No comparison generated.</div>`;
+            return;
+          }
+        }
+
+        const res = await fetch("http://127.0.0.1:8000/run-test", {
+          method: "POST",
+          headers: {"Content-Type":"application/json"},
+          body: JSON.stringify({ prompt })
+        });
+        if (!res.ok) throw new Error(await res.text());
+        const data = await res.json();
+
+        const rewrittenPrompt = (data.rewritten_prompt || "").trim();
+
+        el("rewriteArea").innerHTML = `
+          <div class="box">${escapeHtml(rewrittenPrompt || "(no rewrite returned)")}</div>
+        `;
+
+        setScoreUI({
+          original: {
+            profanity: data.original_profanity_score,
+            toxicity: data.original_toxicity_score,
+            stereotype: data.original_stereotype_score,
+            leading: data.original_leading_score,
+            total: data.original_score
+          },
+          rewritten: {
+            profanity: data.rewritten_profanity_score,
+            toxicity: data.rewritten_toxicity_score,
+            stereotype: data.rewritten_stereotype_score,
+            leading: data.rewritten_leading_score,
+            total: data.rewritten_score
+          }
+        });
+
+        renderFlagged(data.flagged);
+
+        const changes = Array.isArray(data.change_summary) ? data.change_summary : [];
+        el("compareArea").innerHTML = `
+          <div>
+            <strong>Original Prompt</strong>
+            <div class="box">${escapeHtml(prompt)}</div>
+
+            <div style="height:10px"></div>
+            <strong>What changed</strong>
+            <div class="box">${
+              changes.length
+                ? `<ul style="margin:0; padding-left:18px;">${changes.map(c => `<li>${escapeHtml(c)}</li>`).join("")}</ul>`
+                : `<span class="muted">No changes detected.</span>`
+            }</div>
+
+            <div style="height:10px"></div>
+            <strong>Rewritten Prompt</strong>
+            <div class="box">${escapeHtml(rewrittenPrompt || "")}</div>
+          </div>
+        `;
+      } catch (err) {
+        console.error(err);
+        el("flaggedArea").innerHTML = `<div class="box muted">Error: ${escapeHtml(String(err))}</div>`;
+        el("rewriteArea").innerHTML = `<div class="box muted">Error (check console / backend logs).</div>`;
+        el("compareArea").innerHTML = `<div class="box muted">Error.</div>`;
+        setScoreUI(null);
+      } finally {
+        el("runBtn").disabled = false;
+        el("runBtn").textContent = "Run Test";
+      }
+    });
+  </script>
+</body>
+</html>
